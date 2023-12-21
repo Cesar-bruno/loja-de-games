@@ -30,13 +30,16 @@ public class Produto {
 	
 	
 	@NotBlank(message = " O atributo valor é obrigatório.") // defini que o valor n pode ficar vazia, e msg que vai ser visualizada
-	private BigDecimal valor;
+	private BigDecimal preco;
 
 
 	@ManyToOne
 	@JsonIgnoreProperties("produto")
 	private Categoria categoria;
 
+	@ManyToOne
+	@JsonIgnoreProperties("produto")
+	private Usuario usuario;
 	
 	public Categoria getCategoria() {
 		return categoria;
@@ -68,15 +71,29 @@ public class Produto {
 	}
 
 
-	public BigDecimal getValor() {
-		return valor;
+	public BigDecimal getPreco() {
+		return preco;
 	}
 
 
-	public void setValor(BigDecimal valor) {
-		this.valor = valor;
+	public void setPreco(BigDecimal preco) {
+		this.preco = preco;
 	}
+
+
+	public Usuario getUsuario() {
+		return usuario;
+	}
+
+
+	public void setUsuario(Usuario usuario) {
+		this.usuario = usuario;
+	}
+
+
 	
+
+
 	
 	
 }

@@ -1,6 +1,6 @@
 package com.generation.lojadegames.controller;
 
-import java.math.BigDecimal;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.generation.lojadegames.model.Produto;
+import com.generation.lojadegames.repository.CategoriaRepository;
 import com.generation.lojadegames.repository.ProdutoRepository;
 
 import jakarta.validation.Valid;
@@ -31,13 +32,17 @@ public class ProdutoController {
 	
 	@Autowired
 	private ProdutoRepository produtoRepository ;
+	
+	@Autowired
+	private CategoriaRepository categoriaRepository;
+	
 	@GetMapping
 	public ResponseEntity<List<Produto>> getAll(){
 		return ResponseEntity.ok(produtoRepository.findAll()); // select * from tb_produto;
 		
 	}
 	
-	//select * from tb_postagem where id = ?
+
 		@GetMapping("/{id}")
 		public ResponseEntity <Produto> getById(@PathVariable Long id){
 			return produtoRepository.findById(id)
@@ -50,30 +55,38 @@ public class ProdutoController {
 			return ResponseEntity.ok(produtoRepository.findAllByNomeContainingIgnoreCase(nome));
 			}
 		
-		@GetMapping("/menor/{preco}")
-		public ResponseEntity <List<Produto>> getByMenor(@PathVariable BigDecimal preco){
+		@GetMapping("/menorpreco/{preco}")
+		public ResponseEntity<List<Produto>> getByPrecoLess (@PathVariable double preco) {
 			return ResponseEntity.ok(produtoRepository.findByPrecoLessThan(preco));
-			}
+		}
 		
-		@GetMapping("/maior/{preco}")
-		public ResponseEntity <List<Produto>> getBymaior(@PathVariable BigDecimal preco){
+		@GetMapping("/maiorpreco/{preco}")
+		public ResponseEntity<List<Produto>> getByPrecoBigger(@PathVariable double preco) {
 			return ResponseEntity.ok(produtoRepository.findByPrecoGreaterThan(preco));
-			}
+		}
 		
 		
 		@PostMapping
 		public ResponseEntity<Produto> post (@Valid @RequestBody Produto produto){
-			return ResponseEntity.status(HttpStatus.CREATED)
+			if (categoriaRepository.existsById(produto.getCategoria().getId()))
+				return ResponseEntity.status(HttpStatus.CREATED)
 					.body(produtoRepository.save(produto));
-			// insert into tb_produto (titulo,texto)values (valores...);
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoria não existe!", null);
+			
 		}
 		
 		@PutMapping
 		public ResponseEntity<Produto> put (@Valid @RequestBody Produto produto){
-			return produtoRepository.findById(produto.getId())
-					.map(resposta -> ResponseEntity.ok(produtoRepository.save(produto)))
-					.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-			// uptade into tb_produto  set titulo = ?, texto = ?  where id = ? ;
+			if (produtoRepository.existsById(produto.getId())){
+				if (categoriaRepository.existsById(produto.getCategoria().getId()))			
+					return ResponseEntity.status(HttpStatus.OK)
+							.body(produtoRepository.save(produto));
+				
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoria não existe!", null);
+				
+			}			
+				
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 			
 		}
 		
